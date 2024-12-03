@@ -41,29 +41,29 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => console.error('Erreur lors du chargement du CSV :', error));
 
-    // Ajouter un gestionnaire pour la barre de recherche
+    // Ajouter le widget d'auto-complete Mapbox Geocoder
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        placeholder: 'Recherchez une ville...', // Texte de l'auto-complete
+        mapboxgl: mapboxgl,
+    });
+
+    // Intégrer le Geocoder à côté de la barre de recherche
+    const searchContainer = document.getElementById('search-container');
     const searchBar = document.getElementById('search-bar');
-    searchBar.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') { // Rechercher lors de la pression sur "Entrée"
-            const query = searchBar.value;
+    const searchButton = document.getElementById('search-button');
 
-            // Utiliser l'API de géocodage Mapbox pour trouver les coordonnées
-            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.features && data.features.length > 0) {
-                        const [longitude, latitude] = data.features[0].center;
+    searchContainer.insertBefore(geocoder.onAdd(map), searchButton);
 
-                        // Centrer et zoomer la carte sur la ville recherchée
-                        map.flyTo({
-                            center: [longitude, latitude],
-                            zoom: 14,
-                        });
-                    } else {
-                        alert('Aucun résultat trouvé pour cette recherche.');
-                    }
-                })
-                .catch(error => console.error('Erreur lors de la recherche :', error));
+    // Gestionnaire du bouton "Rechercher"
+    searchButton.addEventListener('click', () => {
+        const query = searchBar.value;
+
+        // Effectuer une recherche si le champ est rempli
+        if (query.trim() !== '') {
+            geocoder.query(query);
+        } else {
+            alert('Veuillez entrer une ville à rechercher.');
         }
     });
 });
