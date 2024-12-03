@@ -1,3 +1,10 @@
 #map {
   border: 2px solid #000;
 }
+
+.custom-marker {
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
+  border: 2px solid white;
+}

@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: WP Map Radars
- * Description: Plugin pour afficher des radars sur une map Mapbox avec des markers spécifiques.
+ * Description: Plugin pour afficher des radars sur une carte Mapbox avec des markers spécifiques.
  * Version: 1.0
  * Author: Alexis Stephan
  */
@@ -20,6 +20,7 @@ function wp_map_radars_enqueue_scripts() {
     // Passer l'URL du fichier CSV et la clé API Mapbox au script JS
     wp_localize_script('wp-map-radars', 'wpMapRadars', [
         'csvUrl' => plugins_url('data/radars.csv', __FILE__),
+        'pluginUrl' => plugins_url('', __FILE__), // URL de base du plugin
         'mapboxToken' => 'pk.eyJ1IjoiYm9vYnljb2RpZXBpZSIsImEiOiJjbTQyeDRocWUwNjlyMmpxdzdzbnMyNjNxIn0.xdQ6EpdA01-JVikCrMEh-w',
         'mapboxStyle' => 'mapbox://styles/mapbox/streets-v10',
     ]);

@@ -16,15 +16,29 @@ document.addEventListener('DOMContentLoaded', () => {
           const rows = csvText.split('\n').slice(1); // Ignorer l'en-tête
           rows.forEach(row => {
               const [type, latitude, longitude] = row.split(',');
+
               if (latitude && longitude) {
                   // Définir une icône en fonction du type de radar
-                  const icon = type === 'Radar Fixe' ? 'marker-red' :
-                               type === 'Feu Rouge' ? 'marker-green' : 'marker-blue';
+                  let iconUrl = '';
+                  if (type.trim() === 'Radar Fixe') {
+                      iconUrl = `${wpMapRadars.pluginUrl}/img/fix.png`;
+                  } else if (type.trim() === 'Feu Rouge') {
+                      iconUrl = `${wpMapRadars.pluginUrl}/img/feux_rouges.png`;
+                  }
 
-                  // Ajouter un marker sur la map
-                  new mapboxgl.Marker({ color: icon })
-                      .setLngLat([parseFloat(longitude), parseFloat(latitude)])
-                      .addTo(map);
+                  // Ajouter un marker personnalisé si l'URL de l'icône est définie
+                  if (iconUrl) {
+                      const el = document.createElement('div');
+                      el.className = 'custom-marker';
+                      el.style.backgroundImage = `url(${iconUrl})`;
+                      el.style.width = '30px';
+                      el.style.height = '30px';
+                      el.style.backgroundSize = 'cover';
+
+                      new mapboxgl.Marker(el)
+                          .setLngLat([parseFloat(longitude), parseFloat(latitude)])
+                          .addTo(map);
+                  }
               }
           });
       })
