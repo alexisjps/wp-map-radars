@@ -40,4 +40,48 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(error => console.error('Erreur lors du chargement du CSV :', error));
+
+    // Ajouter un gestionnaire pour la barre de recherche
+    const searchBar = document.getElementById('search-bar');
+    searchBar.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { // Rechercher lors de la pression sur "Entrée"
+            const query = searchBar.value;
+
+            // Utiliser l'API de géocodage Mapbox pour trouver les coordonnées
+            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.features && data.features.length > 0) {
+                        const [longitude, latitude] = data.features[0].center;
+
+                        // Centrer et zoomer la carte sur la ville recherchée
+                        map.flyTo({
+                            center: [longitude, latitude],
+                            zoom: 14,
+                        });
+
+                        // Ajuster les limites pour afficher les markers à proximité
+                        const nearbyBounds = new mapboxgl.LngLatBounds();
+                        let hasNearbyMarkers = false;
+
+                        map.eachLayer(layer => {
+                            if (layer.type === 'marker') {
+                                const markerLngLat = layer.getLngLat();
+                                if (Math.abs(markerLngLat.lat - latitude) <= 1 && Math.abs(markerLngLat.lng - longitude) <= 1) {
+                                    nearbyBounds.extend([markerLngLat.lng, markerLngLat.lat]);
+                                    hasNearbyMarkers = true;
+                                }
+                            }
+                        });
+
+                        if (hasNearbyMarkers) {
+                            map.fitBounds(nearbyBounds, { padding: 50 });
+                        }
+                    } else {
+                        alert('Aucun résultat trouvé pour cette recherche.');
+                    }
+                })
+                .catch(error => console.error('Erreur lors de la recherche :', error));
+        }
+    });
 });
