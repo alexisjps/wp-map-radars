@@ -13,7 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const bounds = new mapboxgl.LngLatBounds();
     const markers = []; // Stocke tous les markers pour les manipuler
 
-    let filterTypes = ['Radar fixe', 'Radar feu rouge']; // Types de radars sélectionnés par défaut
+    let filterTypes = []; // Types de radars sélectionnés par défaut
+
+    // Charger les types de filtres initiaux
+    document.querySelectorAll('#radar-filters input[type="checkbox"]').forEach(checkbox => {
+        filterTypes.push(checkbox.value);
+    });
 
     // Fonction pour ajouter un marker à la carte
     function addMarker(type, latitude, longitude, iconUrl) {
