@@ -9,11 +9,40 @@ document.addEventListener('DOMContentLoaded', () => {
         zoom: 12,
     });
 
-    // Tableau pour vérifier les doublons
     const addedCoordinates = new Set();
-
-    // Création des limites de la carte
     const bounds = new mapboxgl.LngLatBounds();
+    const markers = []; // Stocke tous les markers pour les manipuler
+
+    let filterTypes = ['Radar fixe', 'Radar feu rouge']; // Types de radars sélectionnés par défaut
+
+    // Fonction pour ajouter un marker à la carte
+    function addMarker(type, latitude, longitude, iconUrl) {
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
+        el.style.backgroundImage = `url(${iconUrl})`;
+        el.style.width = '30px';
+        el.style.height = '30px';
+        el.style.backgroundSize = 'cover';
+
+        const marker = new mapboxgl.Marker(el).setLngLat([longitude, latitude]);
+
+        marker.type = type; // Associe le type au marker
+        marker.addTo(map);
+        markers.push(marker);
+
+        bounds.extend([longitude, latitude]); // Étend les limites
+    }
+
+    // Fonction pour afficher/masquer les markers selon le type
+    function filterMarkers() {
+        markers.forEach(marker => {
+            if (filterTypes.includes(marker.type)) {
+                marker.getElement().style.display = 'block'; // Affiche le marker
+            } else {
+                marker.getElement().style.display = 'none'; // Cache le marker
+            }
+        });
+    }
 
     // Charger les données du CSV
     fetch(wpMapRadars.csvUrl)
@@ -29,44 +58,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 const coordKey = `${latitude},${longitude}`; // Clé unique pour les coordonnées
 
                 if (!isNaN(latitude) && !isNaN(longitude) && !addedCoordinates.has(coordKey)) {
-                    addedCoordinates.add(coordKey); // Marquer les coordonnées comme ajoutées
+                    addedCoordinates.add(coordKey);
 
-                    // Ajouter les coordonnées aux limites de la carte
-                    bounds.extend([longitude, latitude]);
-
-                    // Définir une icône en fonction du type de radar
                     let iconUrl = '';
                     if (type === 'Radar fixe') {
                         iconUrl = `${wpMapRadars.pluginUrl}/img/fix.png`;
-                    }
-
-                    if (iconUrl) {
-                        // Marker personnalisé
-                        const el = document.createElement('div');
-                        el.className = 'custom-marker';
-                        el.style.backgroundImage = `url(${iconUrl})`;
-                        el.style.width = '30px';
-                        el.style.height = '30px';
-                        el.style.backgroundSize = 'cover';
-
-                        new mapboxgl.Marker(el)
-                            .setLngLat([longitude, latitude])
-                            .addTo(map);
+                    } else if (type === 'Radar feu rouge') {
+                        iconUrl = `${wpMapRadars.pluginUrl}/img/feux_rouges.png`;
                     } else {
-                        // Marker par défaut de Mapbox
-                        new mapboxgl.Marker()
-                            .setLngLat([longitude, latitude])
-                            .addTo(map);
+                        // Icône par défaut de Mapbox
+                        iconUrl = 'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png';
                     }
-                } else if (addedCoordinates.has(coordKey)) {
-                    console.warn(`Doublon détecté : Latitude = ${latitude}, Longitude = ${longitude}`);
+
+                    addMarker(type, latitude, longitude, iconUrl);
                 }
             });
 
             // Ajuster la carte pour contenir tous les markers
             if (addedCoordinates.size > 0) {
-                map.fitBounds(bounds, { padding: 50 }); // Ajouter un padding pour un peu de marge
+                map.fitBounds(bounds, { padding: 50 });
             }
         })
         .catch(error => console.error('Erreur lors du chargement du CSV :', error));
+
+    // Gestionnaire pour les checkboxs
+    document.querySelectorAll('#radar-filters input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            const checkedBoxes = document.querySelectorAll('#radar-filters input[type="checkbox"]:checked');
+            filterTypes = Array.from(checkedBoxes).map(cb => cb.value); // Mets à jour les types sélectionnés
+            filterMarkers(); // Applique les filtres
+        });
+    });
 });
