@@ -59,24 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             center: [longitude, latitude],
                             zoom: 14,
                         });
-
-                        // Ajuster les limites pour afficher les markers à proximité
-                        const nearbyBounds = new mapboxgl.LngLatBounds();
-                        let hasNearbyMarkers = false;
-
-                        map.eachLayer(layer => {
-                            if (layer.type === 'marker') {
-                                const markerLngLat = layer.getLngLat();
-                                if (Math.abs(markerLngLat.lat - latitude) <= 1 && Math.abs(markerLngLat.lng - longitude) <= 1) {
-                                    nearbyBounds.extend([markerLngLat.lng, markerLngLat.lat]);
-                                    hasNearbyMarkers = true;
-                                }
-                            }
-                        });
-
-                        if (hasNearbyMarkers) {
-                            map.fitBounds(nearbyBounds, { padding: 50 });
-                        }
                     } else {
                         alert('Aucun résultat trouvé pour cette recherche.');
                     }
