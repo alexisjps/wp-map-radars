@@ -11,43 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addedCoordinates = new Set();
     const bounds = new mapboxgl.LngLatBounds();
-    const markers = []; // Stocke tous les markers pour les manipuler
-
-    let filterTypes = []; // Types de radars sélectionnés par défaut
-
-    // Charger les types de filtres initiaux
-    document.querySelectorAll('#radar-filters input[type="checkbox"]').forEach(checkbox => {
-        filterTypes.push(checkbox.value);
-    });
-
-    // Fonction pour ajouter un marker à la carte
-    function addMarker(type, latitude, longitude, iconUrl) {
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        el.style.backgroundImage = `url(${iconUrl})`;
-        el.style.width = '30px';
-        el.style.height = '30px';
-        el.style.backgroundSize = 'cover';
-
-        const marker = new mapboxgl.Marker(el).setLngLat([longitude, latitude]);
-
-        marker.type = type; // Associe le type au marker
-        marker.addTo(map);
-        markers.push(marker);
-
-        bounds.extend([longitude, latitude]); // Étend les limites
-    }
-
-    // Fonction pour afficher/masquer les markers selon le type
-    function filterMarkers() {
-        markers.forEach(marker => {
-            if (filterTypes.includes(marker.type)) {
-                marker.getElement().style.display = 'block'; // Affiche le marker
-            } else {
-                marker.getElement().style.display = 'none'; // Cache le marker
-            }
-        });
-    }
 
     // Charger les données du CSV
     fetch(wpMapRadars.csvUrl)
@@ -75,7 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         iconUrl = 'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png';
                     }
 
-                    addMarker(type, latitude, longitude, iconUrl);
+                    // Ajouter le marker à la carte
+                    const el = document.createElement('div');
+                    el.className = 'custom-marker';
+                    el.style.backgroundImage = `url(${iconUrl})`;
+                    el.style.width = '30px';
+                    el.style.height = '30px';
+                    el.style.backgroundSize = 'cover';
+
+                    new mapboxgl.Marker(el)
+                        .setLngLat([longitude, latitude])
+                        .addTo(map);
+
+                    bounds.extend([longitude, latitude]); // Étend les limites
                 }
             });
 
@@ -85,13 +60,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(error => console.error('Erreur lors du chargement du CSV :', error));
-
-    // Gestionnaire pour les checkboxs
-    document.querySelectorAll('#radar-filters input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            const checkedBoxes = document.querySelectorAll('#radar-filters input[type="checkbox"]:checked');
-            filterTypes = Array.from(checkedBoxes).map(cb => cb.value); // Mets à jour les types sélectionnés
-            filterMarkers(); // Applique les filtres
-        });
-    });
 });
