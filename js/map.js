@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
         zoom: 12,
     });
 
-    const addedCoordinates = new Set();
     const bounds = new mapboxgl.LngLatBounds();
 
     // Charger les données du CSV
@@ -17,17 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.text())
         .then(csvText => {
             const rows = csvText.split('\n').slice(1); // Ignorer l'en-tête
-            rows.forEach((row, index) => {
+            rows.forEach((row) => {
                 const columns = row.split(',');
                 const type = columns[10]?.trim(); // Colonne "type"
                 const latitude = parseFloat(columns[3]); // Colonne "latitude"
                 const longitude = parseFloat(columns[4]); // Colonne "longitude"
 
-                const coordKey = `${latitude},${longitude}`; // Clé unique pour les coordonnées
-
-                if (!isNaN(latitude) && !isNaN(longitude) && !addedCoordinates.has(coordKey)) {
-                    addedCoordinates.add(coordKey);
-
+                // Vérifier que les coordonnées sont valides
+                if (!isNaN(latitude) && !isNaN(longitude)) {
                     let iconUrl = '';
                     if (type === 'Radar fixe') {
                         iconUrl = `${wpMapRadars.pluginUrl}/img/fix.png`;
@@ -40,22 +36,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Ajouter le marker à la carte
                     const el = document.createElement('div');
-                    el.className = 'custom-marker';
                     el.style.backgroundImage = `url(${iconUrl})`;
                     el.style.width = '30px';
                     el.style.height = '30px';
-                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundSize = 'contain';
+                    el.style.borderRadius = '50%';
 
                     new mapboxgl.Marker(el)
                         .setLngLat([longitude, latitude])
                         .addTo(map);
 
-                    bounds.extend([longitude, latitude]); // Étend les limites
+                    bounds.extend([longitude, latitude]); // Étend les limites de la carte
                 }
             });
 
             // Ajuster la carte pour contenir tous les markers
-            if (addedCoordinates.size > 0) {
+            if (bounds.isEmpty()) {
+                map.setCenter([2.3488, 48.8534]); // Paris par défaut si aucun marker
+            } else {
                 map.fitBounds(bounds, { padding: 50 });
             }
         })
