@@ -15,18 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(csvText => {
           const rows = csvText.split('\n').slice(1); // Ignorer l'en-tête
           rows.forEach(row => {
-              const [type, latitude, longitude] = row.split(',');
+              const columns = row.split(',');
+              const type = columns[10]?.trim(); // Colonne "type" (index 10)
+              const latitude = parseFloat(columns[3]); // Colonne "latitude" (index 3)
+              const longitude = parseFloat(columns[4]); // Colonne "longitude" (index 4)
 
-              if (latitude && longitude) {
+              if (!isNaN(latitude) && !isNaN(longitude)) {
                   // Définir une icône en fonction du type de radar
                   let iconUrl = '';
-                  if (type.trim() === 'Radar Fixe') {
+                  if (type === 'Radar fixe') {
                       iconUrl = `${wpMapRadars.pluginUrl}/img/fix.png`;
-                  } else if (type.trim() === 'Feu Rouge') {
+                  } else if (type === 'Radar feu rouge') {
                       iconUrl = `${wpMapRadars.pluginUrl}/img/feux_rouges.png`;
                   }
 
-                  // Ajouter un marker personnalisé si l'URL de l'icône est définie
                   if (iconUrl) {
                       const el = document.createElement('div');
                       el.className = 'custom-marker';
@@ -36,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       el.style.backgroundSize = 'cover';
 
                       new mapboxgl.Marker(el)
-                          .setLngLat([parseFloat(longitude), parseFloat(latitude)])
+                          .setLngLat([longitude, latitude])
                           .addTo(map);
                   }
               }
