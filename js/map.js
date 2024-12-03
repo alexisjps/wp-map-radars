@@ -18,31 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = csvText.split('\n').slice(1); // Ignorer l'en-tête
             rows.forEach((row) => {
                 const columns = row.split(',');
-                const type = columns[10]?.trim(); // Colonne "type"
                 const latitude = parseFloat(columns[3]); // Colonne "latitude"
                 const longitude = parseFloat(columns[4]); // Colonne "longitude"
 
                 // Vérifier que les coordonnées sont valides
                 if (!isNaN(latitude) && !isNaN(longitude)) {
-                    let iconUrl = '';
-                    if (type === 'Radar fixe') {
-                        iconUrl = `${wpMapRadars.pluginUrl}/img/fix.png`;
-                    } else if (type === 'Radar feu rouge') {
-                        iconUrl = `${wpMapRadars.pluginUrl}/img/feux_rouges.png`;
-                    } else {
-                        // Icône par défaut de Mapbox
-                        iconUrl = 'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png';
-                    }
-
-                    // Ajouter le marker à la carte
-                    const el = document.createElement('div');
-                    el.style.backgroundImage = `url(${iconUrl})`;
-                    el.style.width = '30px';
-                    el.style.height = '30px';
-                    el.style.backgroundSize = 'contain';
-                    el.style.borderRadius = '50%';
-
-                    new mapboxgl.Marker(el)
+                    // Ajouter un marker par défaut de Mapbox
+                    new mapboxgl.Marker()
                         .setLngLat([longitude, latitude])
                         .addTo(map);
 
