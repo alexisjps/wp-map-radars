@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
         zoom: 12,
     });
 
+    // Tableau pour vérifier les doublons
+    const addedCoordinates = new Set();
+
     // Charger les données du CSV
     fetch(wpMapRadars.csvUrl)
         .then(response => response.text())
@@ -16,22 +19,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const rows = csvText.split('\n').slice(1); // Ignorer l'en-tête
             rows.forEach((row, index) => {
                 const columns = row.split(',');
-                const type = columns[10]?.trim(); // Colonne "type" (index 10)
-                const latitude = parseFloat(columns[3]); // Colonne "latitude" (index 3)
-                const longitude = parseFloat(columns[4]); // Colonne "longitude" (index 4)
+                const type = columns[10]?.trim(); // Colonne "type"
+                const latitude = parseFloat(columns[3]); // Colonne "latitude"
+                const longitude = parseFloat(columns[4]); // Colonne "longitude"
 
-                console.log(`Ligne ${index + 1}: Type = ${type}, Latitude = ${latitude}, Longitude = ${longitude}`);
+                const coordKey = `${latitude},${longitude}`; // Clé unique pour les coordonnées
 
-                if (!isNaN(latitude) && !isNaN(longitude)) {
+                if (!isNaN(latitude) && !isNaN(longitude) && !addedCoordinates.has(coordKey)) {
+                    addedCoordinates.add(coordKey); // Marquer les coordonnées comme ajoutées
+
                     // Définir une icône en fonction du type de radar
                     let iconUrl = '';
                     if (type === 'Radar fixe') {
                         iconUrl = `${wpMapRadars.pluginUrl}/img/fix.png`;
-                    } else if (type === 'Radar feu rouge') {
-                        iconUrl = `${wpMapRadars.pluginUrl}/img/feux_rouges.png`;
                     }
 
                     if (iconUrl) {
+                        // Marker personnalisé
                         const el = document.createElement('div');
                         el.className = 'custom-marker';
                         el.style.backgroundImage = `url(${iconUrl})`;
@@ -42,9 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         new mapboxgl.Marker(el)
                             .setLngLat([longitude, latitude])
                             .addTo(map);
+                    } else {
+                        // Marker par défaut de Mapbox
+                        new mapboxgl.Marker()
+                            .setLngLat([longitude, latitude])
+                            .addTo(map);
                     }
-                } else {
-                    console.error(`Coordonnées invalides à la ligne ${index + 1}`);
+                } else if (addedCoordinates.has(coordKey)) {
+                    console.warn(`Doublon détecté : Latitude = ${latitude}, Longitude = ${longitude}`);
                 }
             });
         })
