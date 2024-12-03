@@ -48,22 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mapboxgl: mapboxgl,
     });
 
-    // Intégrer le Geocoder à côté de la barre de recherche
-    const searchContainer = document.getElementById('search-container');
-    const searchBar = document.getElementById('search-bar');
-    const searchButton = document.getElementById('search-button');
-
-    searchContainer.insertBefore(geocoder.onAdd(map), searchButton);
-
-    // Gestionnaire du bouton "Rechercher"
-    searchButton.addEventListener('click', () => {
-        const query = searchBar.value;
-
-        // Effectuer une recherche si le champ est rempli
-        if (query.trim() !== '') {
-            geocoder.query(query);
-        } else {
-            alert('Veuillez entrer une ville à rechercher.');
-        }
-    });
+    // Intégrer le Geocoder dans la carte
+    map.addControl(geocoder);
 });
