@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tableau pour vérifier les doublons
     const addedCoordinates = new Set();
 
+    // Création des limites de la carte
+    const bounds = new mapboxgl.LngLatBounds();
+
     // Charger les données du CSV
     fetch(wpMapRadars.csvUrl)
         .then(response => response.text())
@@ -27,6 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!isNaN(latitude) && !isNaN(longitude) && !addedCoordinates.has(coordKey)) {
                     addedCoordinates.add(coordKey); // Marquer les coordonnées comme ajoutées
+
+                    // Ajouter les coordonnées aux limites de la carte
+                    bounds.extend([longitude, latitude]);
 
                     // Définir une icône en fonction du type de radar
                     let iconUrl = '';
@@ -56,6 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.warn(`Doublon détecté : Latitude = ${latitude}, Longitude = ${longitude}`);
                 }
             });
+
+            // Ajuster la carte pour contenir tous les markers
+            if (addedCoordinates.size > 0) {
+                map.fitBounds(bounds, { padding: 50 }); // Ajouter un padding pour un peu de marge
+            }
         })
         .catch(error => console.error('Erreur lors du chargement du CSV :', error));
 });
